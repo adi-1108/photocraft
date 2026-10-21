@@ -20,13 +20,13 @@ The existing selection limits the fill, including fractional coverage at feather
 
 The result contains `layer`, `bounds` (the filled mask's `[x, y, width, height]` in document pixels), `subjectFound`, `filledWith` (`lama` or `patch`), and `subjectEngine` (`model` or `classical`). No subject, an empty intersection with the selection, or no surrounding source pixels produces an error without an edit.
 
-The temporary subject-finding implementation is isolated in `remove_subject_cmds::find_subject_region`; it can be replaced with the shared helper in `smartselect_cmds` when that work lands.
+The subject comes from `smartselect_cmds::find_subject_region`, the same helper Select Subject and Remove Background use.
 
 Dense input is limited to 64 Mi pixels, each side at most 32,768 pixels; the fill window is limited to 16 Mi pixels. Each limit is checked before allocating or sampling its corresponding dense buffer. An existing layer's transparency lock is respected.
 
 ## Validation
 
-Tests were written before implementation; the first build failed on the missing `fill_window` implementation. All Cargo commands used `CARGO_TARGET_DIR=target/agent-removesubject`.
+Tests were written before implementation; the first build failed on the missing `fill_window` implementation.
 
 | Gate | Result |
 |---|---|
@@ -42,8 +42,6 @@ Tests were written before implementation; the first build failed on the missing 
 | Offscreen UI | Inspected a 1440×900 PNG: Remove Subject is enabled for an unlocked pixel layer, directly below Content-Aware Fill |
 
 The full suite and panic hunt used an empty `PHOTOCRAFT_MODELS_DIR` to exercise the CI fallback path. An earlier full-suite run began expensive inference against installed weights and was stopped before completion. Model outputs are covered with injected test stubs; real-model removal quality remains unverified.
-
-Handoff: the temporary subject finder remains available for replacement by the shared helper. The menu parity floor remains 631: `crates/ui-egui/src/parity.rs` is outside this task's allowed edit scope, so raising it to 632 is left to the owner.
 
 ## Revision history
 

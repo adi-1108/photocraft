@@ -28,6 +28,8 @@ pub fn download(model: Model, progress: &dyn Fn(u64, u64), cancel: Cancel<'_>) -
         progress(model.size_bytes(), model.size_bytes());
         return Ok(path);
     }
+    // The lock is held, so any `.part` file is left over from a download that died.
+    clear_stale_part(&path)?;
     let client = reqwest::blocking::Client::builder()
         .https_only(true)
         .user_agent(concat!("photocraft/", env!("CARGO_PKG_VERSION")))
@@ -73,6 +75,16 @@ fn lock_model(dir: &Path, model: Model) -> Result<File, MlError> {
             Err(MlError::Download(format!("the {} model is being downloaded or removed elsewhere; try again when that finishes", model.label())))
         }
         Err(std::fs::TryLockError::Error(e)) => Err(MlError::Download(format!("lock {}: {e}", path.display()))),
+    }
+}
+
+/// Delete the partial download next to `path`, if any. Missing is fine.
+fn clear_stale_part(path: &Path) -> Result<(), MlError> {
+    let part = part_path(path);
+    match std::fs::remove_file(&part) {
+        Ok(()) => Ok(()),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(()),
+        Err(e) => Err(MlError::Download(format!("remove {}: {e}", part.display()))),
     }
 }
 
@@ -251,6 +263,20 @@ mod tests {
         assert!(!path.exists() && !part_path(&path).exists());
         // Not installed: still fine.
         remove_in(&t.0, model)?;
+        Ok(())
+    }
+
+    #[test]
+    fn a_stale_partial_download_does_not_block_a_retry() -> Result<(), Box<dyn std::error::Error>> {
+        let t = Temp::new()?;
+        let path = t.0.join("m.onnx");
+        // Left by a download that was killed before it could clean up.
+        std::fs::write(part_path(&path), b"stale")?;
+        clear_stale_part(&path)?;
+        install_from(&b"abc"[..], &path, 3, ABC_SHA256, &|_, _| {}, &never)?;
+        assert_eq!(std::fs::read(&path)?, b"abc");
+        // Nothing to clear is fine.
+        clear_stale_part(&path)?;
         Ok(())
     }
 }
