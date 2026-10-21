@@ -69,15 +69,18 @@ struct ColorLine {
 
 impl ColorLine {
     fn at(&self, t: f32) -> [f32; 4] {
-        let t = match self.extend {
-            Extend::Repeat => t - t.floor(),
-            Extend::Reflect => {
-                let m = t.rem_euclid(2.0);
-                if m > 1.0 { 2.0 - m } else { m }
-            }
-            _ => t.clamp(0.0, 1.0),
-        };
         let (Some(first), Some(last)) = (self.stops.first(), self.stops.last()) else { return [0.0; 4] };
+        // Repeat and Reflect run over the stops' own span, which COLR doesn't pin to 0..1; Pad is
+        // the first/last stop beyond it.
+        let (t0, span) = (first.0, last.0 - first.0);
+        let t = match self.extend {
+            Extend::Repeat if span > 0.0 => t0 + (t - t0).rem_euclid(span),
+            Extend::Reflect if span > 0.0 => {
+                let m = (t - t0).rem_euclid(2.0 * span);
+                t0 + if m > span { 2.0 * span - m } else { m }
+            }
+            _ => t,
+        };
         if t.is_nan() || t <= first.0 {
             return first.1;
         }
@@ -386,6 +389,21 @@ mod tests {
         assert!((line(Extend::Repeat).at(1.25)[0] - 0.75).abs() < 1e-6);
         assert!((line(Extend::Reflect).at(1.25)[0] - 0.25).abs() < 1e-6);
         assert_eq!(ColorLine { stops: Vec::new(), extend: Extend::Pad }.at(0.5), [0.0; 4]);
+    }
+
+    #[test]
+    fn colour_line_extends_over_its_stops_not_over_0_to_1() {
+        // COLR repeats and reflects over [first stop, last stop], and stops may lie outside 0..1.
+        let inner = |extend| ColorLine { stops: vec![(0.25, RED), (0.75, BLUE)], extend };
+        let red_share = |c: [f32; 4]| c[0];
+        // Period 0.5: 0.875 repeats 0.375 (a quarter of the way to blue).
+        assert!((red_share(inner(Extend::Repeat).at(0.875)) - 0.75).abs() < 1e-5);
+        // Reflect: 0.875 mirrors 0.625 (three quarters of the way to blue).
+        assert!((red_share(inner(Extend::Reflect).at(0.875)) - 0.25).abs() < 1e-5);
+        // Pad reaches stops outside 0..1.
+        let wide = ColorLine { stops: vec![(-0.5, RED), (1.5, BLUE)], extend: Extend::Pad };
+        assert!((red_share(wide.at(0.0)) - 0.75).abs() < 1e-5);
+        assert_eq!(wide.at(1.5), BLUE);
     }
 
     #[test]
