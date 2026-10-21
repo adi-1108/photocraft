@@ -115,24 +115,33 @@ fn installed_in(dir: &std::path::Path, model: Model) -> Option<PathBuf> {
 }
 
 /// Whether the file at `p` has `model`'s SHA-256. The hash of a ~200 MB file is computed once
-/// per file version (size and modification time), not on every lookup.
+/// per file version, not on every lookup. The version includes the inode and the change time
+/// on Unix, which every write, copy-over or rename moves and which a user can't set back, so a
+/// replaced file is always hashed again even when its size and modification time match.
 #[cfg(not(target_arch = "wasm32"))]
 fn hash_ok(p: &std::path::Path, model: Model, meta: &std::fs::Metadata) -> bool {
     use std::collections::HashMap;
     use std::sync::{Mutex, OnceLock};
-    type Seen = HashMap<PathBuf, (u64, Option<std::time::SystemTime>, bool)>;
-    static SEEN: OnceLock<Mutex<Seen>> = OnceLock::new();
-    let key = (meta.len(), meta.modified().ok());
+    type Version = (u64, Option<std::time::SystemTime>, u64, i64, i64);
+    static SEEN: OnceLock<Mutex<HashMap<PathBuf, (Version, bool)>>> = OnceLock::new();
+    #[cfg(unix)]
+    let (ino, ctime, ctime_ns) = {
+        use std::os::unix::fs::MetadataExt;
+        (meta.ino(), meta.ctime(), meta.ctime_nsec())
+    };
+    #[cfg(not(unix))]
+    let (ino, ctime, ctime_ns) = (0, 0, 0);
+    let version: Version = (meta.len(), meta.modified().ok(), ino, ctime, ctime_ns);
     let seen = SEEN.get_or_init(Default::default);
     if let Ok(map) = seen.lock()
-        && let Some(&(len, modified, ok)) = map.get(p)
-        && (len, modified) == key
+        && let Some(&(v, ok)) = map.get(p)
+        && v == version
     {
         return ok;
     }
     let ok = std::fs::File::open(p).is_ok_and(|mut f| crate::install::verify(&mut f, model.size_bytes(), model.sha256()).is_ok());
     if let Ok(mut map) = seen.lock() {
-        map.insert(p.to_path_buf(), (key.0, key.1, ok));
+        map.insert(p.to_path_buf(), (version, ok));
     }
     ok
 }
@@ -164,14 +173,19 @@ mod tests {
     #[cfg(not(target_arch = "wasm32"))]
     #[test]
     fn a_same_size_corrupt_file_is_not_installed() -> Result<(), Box<dyn std::error::Error>> {
-        let dir = std::env::temp_dir().join(format!("photocraft-ml-store-{}", std::process::id()));
-        std::fs::create_dir_all(&dir)?;
+        struct Temp(PathBuf);
+        impl Drop for Temp {
+            fn drop(&mut self) {
+                let _ = std::fs::remove_dir_all(&self.0);
+            }
+        }
+        // Created exclusively, so a pre-placed directory or symlink can't be reused.
+        let dir = Temp(std::env::temp_dir().join(format!("photocraft-ml-store-{}-{:?}", std::process::id(), std::thread::current().id())));
+        std::fs::create_dir(&dir.0)?;
         let model = Model::Lama;
         // Right size, wrong bytes (sparse zeros).
-        std::fs::File::create(dir.join(model.file_name()))?.set_len(model.size_bytes())?;
-        let found = installed_in(&dir, model);
-        let _ = std::fs::remove_dir_all(&dir);
-        assert_eq!(found, None);
+        std::fs::File::create_new(dir.0.join(model.file_name()))?.set_len(model.size_bytes())?;
+        assert_eq!(installed_in(&dir.0, model), None);
         Ok(())
     }
 }
