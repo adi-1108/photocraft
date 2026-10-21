@@ -180,8 +180,10 @@ mod tests {
             }
         }
         // Created exclusively, so a pre-placed directory or symlink can't be reused.
-        let dir = Temp(std::env::temp_dir().join(format!("photocraft-ml-store-{}-{:?}", std::process::id(), std::thread::current().id())));
-        std::fs::create_dir(&dir.0)?;
+        let path = std::env::temp_dir().join(format!("photocraft-ml-store-{}-{:?}", std::process::id(), std::thread::current().id()));
+        std::fs::create_dir(&path)?;
+        // Guard only what this test created.
+        let dir = Temp(path);
         let model = Model::Lama;
         // Right size, wrong bytes (sparse zeros).
         std::fs::File::create_new(dir.0.join(model.file_name()))?.set_len(model.size_bytes())?;
