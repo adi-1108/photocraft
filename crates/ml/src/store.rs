@@ -98,15 +98,48 @@ pub fn models_disabled() -> bool {
     MODELS_DISABLED.load(std::sync::atomic::Ordering::Relaxed) || std::env::var_os("PHOTOCRAFT_NO_MODELS").is_some_and(|v| !v.is_empty() && v != "0")
 }
 
-/// The installed file of `model`, if it is there and the right size. A partial download is treated
-/// as missing rather than handed to the loader. `None` while [`models_disabled`].
+/// The installed file of `model`, if it is there with the published size and SHA-256. A partial
+/// or corrupt file is treated as missing rather than handed to the loader. `None` while
+/// [`models_disabled`].
 pub fn model_path(model: Model) -> Option<PathBuf> {
     if models_disabled() {
         return None;
     }
-    let p = models_dir()?.join(model.file_name());
-    let len = std::fs::metadata(&p).ok()?.len();
-    (len == model.size_bytes()).then_some(p)
+    installed_in(&models_dir()?, model)
+}
+
+fn installed_in(dir: &std::path::Path, model: Model) -> Option<PathBuf> {
+    let p = dir.join(model.file_name());
+    let meta = std::fs::metadata(&p).ok()?;
+    (meta.len() == model.size_bytes() && hash_ok(&p, model, &meta)).then_some(p)
+}
+
+/// Whether the file at `p` has `model`'s SHA-256. The hash of a ~200 MB file is computed once
+/// per file version (size and modification time), not on every lookup.
+#[cfg(not(target_arch = "wasm32"))]
+fn hash_ok(p: &std::path::Path, model: Model, meta: &std::fs::Metadata) -> bool {
+    use std::collections::HashMap;
+    use std::sync::{Mutex, OnceLock};
+    type Seen = HashMap<PathBuf, (u64, Option<std::time::SystemTime>, bool)>;
+    static SEEN: OnceLock<Mutex<Seen>> = OnceLock::new();
+    let key = (meta.len(), meta.modified().ok());
+    let seen = SEEN.get_or_init(Default::default);
+    if let Ok(map) = seen.lock()
+        && let Some(&(len, modified, ok)) = map.get(p)
+        && (len, modified) == key
+    {
+        return ok;
+    }
+    let ok = std::fs::File::open(p).is_ok_and(|mut f| crate::install::verify(&mut f, model.size_bytes(), model.sha256()).is_ok());
+    if let Ok(mut map) = seen.lock() {
+        map.insert(p.to_path_buf(), (key.0, key.1, ok));
+    }
+    ok
+}
+
+#[cfg(target_arch = "wasm32")]
+fn hash_ok(_: &std::path::Path, _: Model, _: &std::fs::Metadata) -> bool {
+    false
 }
 
 /// Where `model` is expected, installed or not (for messages).
@@ -126,5 +159,19 @@ mod tests {
         for model in Model::ALL {
             assert_eq!(model_path(model), None);
         }
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    #[test]
+    fn a_same_size_corrupt_file_is_not_installed() -> Result<(), Box<dyn std::error::Error>> {
+        let dir = std::env::temp_dir().join(format!("photocraft-ml-store-{}", std::process::id()));
+        std::fs::create_dir_all(&dir)?;
+        let model = Model::Lama;
+        // Right size, wrong bytes (sparse zeros).
+        std::fs::File::create(dir.join(model.file_name()))?.set_len(model.size_bytes())?;
+        let found = installed_in(&dir, model);
+        let _ = std::fs::remove_dir_all(&dir);
+        assert_eq!(found, None);
+        Ok(())
     }
 }
