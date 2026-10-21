@@ -257,7 +257,8 @@ fn paint_color_glyphs(
         let [r, gr, bl] = st.color.to_rgb();
         let outline = |id: GlyphId, m: &Xform, s: &mut Coverage| outline_into(&font, &coords, id, unit.mul(m), &to_window, bend, s);
         let colors = palette.as_ref().map_or(&[][..], |p| p.colors());
-        let mut painter = Painter::new(ww, wh, outline, to_window.mul(&unit), colors, [r, gr, bl, 1.0], antialias == AntiAlias::None);
+        let mut painter =
+            Painter::new(ww, wh, outline, to_window.mul(&unit), colors, [r, gr, bl, 1.0], antialias == AntiAlias::None).with_clip_boxes(bend.is_none());
         if color.paint(LocationRef::new(&coords), &mut painter).is_err() {
             continue;
         }

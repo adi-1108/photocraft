@@ -217,6 +217,10 @@ pub(crate) struct Painter<'a, F: FnMut(GlyphId, &Xform, &mut Coverage)> {
     hard: bool,
     xforms: Vec<Xform>,
     clips: Vec<Vec<f32>>,
+    /// Whether COLR clip boxes clip. Off for bent type: the outlines are bent but a clip box
+    /// would stay a straight rectangle and cut them off. Gradients under a bend are laid out
+    /// unbent either way.
+    clip_boxes: bool,
     layers: Vec<Vec<[f32; 4]>>,
     /// `push_layer` calls past [`MAX_LAYERS`], painted into the layer below.
     flat: usize,
@@ -225,7 +229,13 @@ pub(crate) struct Painter<'a, F: FnMut(GlyphId, &Xform, &mut Coverage)> {
 impl<'a, F: FnMut(GlyphId, &Xform, &mut Coverage)> Painter<'a, F> {
     pub fn new(w: usize, h: usize, outline: F, to_window: Xform, palette: &'a [skrifa::color::Color], foreground: [f32; 4], hard: bool) -> Self {
         let layers = vec![vec![[0.0; 4]; w * h]];
-        Self { w, h, outline, to_window, palette, foreground, hard, xforms: Vec::new(), clips: Vec::new(), layers, flat: 0 }
+        Self { w, h, outline, to_window, palette, foreground, hard, xforms: Vec::new(), clips: Vec::new(), clip_boxes: true, layers, flat: 0 }
+    }
+
+    /// Leaves COLR clip boxes out (bent type); see [`Painter::clip_boxes`].
+    pub fn with_clip_boxes(mut self, on: bool) -> Self {
+        self.clip_boxes = on;
+        self
     }
 
     /// The painted glyph, premultiplied sRGB, row-major.
@@ -311,6 +321,12 @@ impl<F: FnMut(GlyphId, &Xform, &mut Coverage)> ColorPainter for Painter<'_, F> {
         self.push_coverage(cov);
     }
     fn push_clip_box(&mut self, b: BoundingBox<f32>) {
+        if !self.clip_boxes {
+            // Keep push/pop balanced: the clip stays what it was.
+            let same = self.clips.last().cloned().unwrap_or_else(|| vec![1.0; self.w * self.h]);
+            self.clips.push(same);
+            return;
+        }
         let mut cov = Coverage::new(self.w, self.h);
         rect_to(&mut cov, &self.to_window.mul(&self.current()), b.x_min as f64, b.y_min as f64, b.x_max as f64, b.y_max as f64);
         self.push_coverage(cov);
@@ -404,6 +420,28 @@ mod tests {
         let wide = ColorLine { stops: vec![(-0.5, RED), (1.5, BLUE)], extend: Extend::Pad };
         assert!((red_share(wide.at(0.0)) - 0.75).abs() < 1e-5);
         assert_eq!(wide.at(1.5), BLUE);
+    }
+
+    #[test]
+    fn clip_boxes_can_be_left_out_for_bent_type() {
+        // Under a bending warp the outlines are bent but a clip box would stay a straight
+        // rectangle and cut the bent glyph off, so bent type leaves clip boxes out.
+        let palette = [skrifa::color::Color { red: 255, green: 0, blue: 0, alpha: 255 }];
+        let paint = |clip_boxes: bool| {
+            let full = |_: GlyphId, _: &Xform, c: &mut Coverage| rect_to(c, &Xform::IDENTITY, 0.0, 0.0, 8.0, 8.0);
+            let mut p = Painter::new(8, 8, full, Xform::IDENTITY, &palette, [0.0, 0.0, 0.0, 1.0], false).with_clip_boxes(clip_boxes);
+            p.push_clip_box(BoundingBox { x_min: 0.0, y_min: 0.0, x_max: 2.0, y_max: 2.0 });
+            p.push_clip_glyph(GlyphId::new(1));
+            p.fill(Brush::Solid { palette_index: 0, alpha: 1.0 });
+            p.pop_clip();
+            p.pop_clip();
+            p.finish()
+        };
+        let (clipped, bent) = (paint(true), paint(false));
+        // Pixel (5, 5) lies outside the 2x2 clip box.
+        assert_eq!(clipped.get(5 * 8 + 5).map(|c| c[3]), Some(0.0));
+        assert_eq!(bent.get(5 * 8 + 5).map(|c| c[3]), Some(1.0));
+        assert_eq!(bent.first().map(|c| c[3]), Some(1.0));
     }
 
     #[test]
