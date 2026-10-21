@@ -73,10 +73,14 @@ mod tests {
         let path = std::env::temp_dir().join(format!("photocraft-ml-backend-{}-{:?}.onnx", std::process::id(), std::thread::current().id()));
         std::fs::File::create_new(&path)?;
         let wrong = verified_bytes(&path, 3, "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad");
+        // Same size, different bytes.
+        std::fs::write(&path, b"abd")?;
+        let same_size = verified_bytes(&path, 3, "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad");
         std::fs::write(&path, b"abc")?;
         let right = verified_bytes(&path, 3, "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad");
         let _ = std::fs::remove_file(&path);
         assert!(wrong.is_err(), "an empty file must not load");
+        assert!(same_size.is_err(), "a same-size corrupt file must not load");
         assert_eq!(right?, b"abc");
         Ok(())
     }
