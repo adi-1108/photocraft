@@ -129,7 +129,14 @@ fn hash_ok(p: &std::path::Path, model: Model, meta: &std::fs::Metadata) -> bool 
         use std::os::unix::fs::MetadataExt;
         (meta.ino(), meta.ctime(), meta.ctime_nsec())
     };
-    #[cfg(not(unix))]
+    // Windows: no inode or change time; the creation time at least moves when a file is
+    // deleted and written anew. Loading re-checks the hash of the bytes it uses either way.
+    #[cfg(windows)]
+    let (ino, ctime, ctime_ns) = {
+        use std::os::windows::fs::MetadataExt;
+        (0, i64::try_from(meta.creation_time()).unwrap_or(i64::MAX), 0)
+    };
+    #[cfg(not(any(unix, windows)))]
     let (ino, ctime, ctime_ns) = (0, 0, 0);
     let version: Version = (meta.len(), meta.modified().ok(), ino, ctime, ctime_ns);
     let seen = SEEN.get_or_init(Default::default);

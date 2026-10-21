@@ -29,9 +29,22 @@ fn plan(model: Model) -> Result<Plan, MlError> {
     if let Some((_, p)) = plans.iter().find(|(m, _)| *m == model) {
         return Ok(Arc::clone(p));
     }
-    let plan = tract_onnx::onnx().model_for_path(path).and_then(|m| m.into_optimized()).and_then(|m| m.into_runnable()).map_err(backend)?;
+    // Load from the bytes whose hash was just checked, so what runs is what was verified.
+    let bytes = verified_bytes(&path, model.size_bytes(), model.sha256())?;
+    let plan = tract_onnx::onnx().model_for_read(&mut bytes.as_slice()).and_then(|m| m.into_optimized()).and_then(|m| m.into_runnable()).map_err(backend)?;
     plans.push((model, Arc::clone(&plan)));
     Ok(plan)
+}
+
+/// The contents of `path`, if they have `size` bytes and the SHA-256 `sha256`.
+fn verified_bytes(path: &std::path::Path, size: u64, sha256: &str) -> Result<Vec<u8>, MlError> {
+    use sha2::{Digest, Sha256};
+    let bytes = std::fs::read(path).map_err(|e| MlError::Backend(format!("read {}: {e}", path.display())))?;
+    let actual = format!("{:x}", Sha256::digest(&bytes));
+    if bytes.len() as u64 != size || actual != sha256 {
+        return Err(MlError::Backend(format!("{} does not match the published model; download it again", path.display())));
+    }
+    Ok(bytes)
 }
 
 /// Runs `model` on `inputs` (shape, row-major data) and returns its first output's data. Stops with [`MlError::Cancelled`] after loading the model and after waiting for
@@ -49,4 +62,22 @@ pub(crate) fn run_with(model: Model, inputs: &[(&[usize], Vec<f32>)], cancel: Ca
     let first = out.first().ok_or_else(|| MlError::Backend("the model returned no output".into()))?;
     let view = first.to_plain_array_view::<f32>().map_err(backend)?;
     Ok(view.iter().copied().collect())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn only_bytes_with_the_published_hash_are_loaded() -> Result<(), Box<dyn std::error::Error>> {
+        let path = std::env::temp_dir().join(format!("photocraft-ml-backend-{}-{:?}.onnx", std::process::id(), std::thread::current().id()));
+        std::fs::File::create_new(&path)?;
+        let wrong = verified_bytes(&path, 3, "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad");
+        std::fs::write(&path, b"abc")?;
+        let right = verified_bytes(&path, 3, "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad");
+        let _ = std::fs::remove_file(&path);
+        assert!(wrong.is_err(), "an empty file must not load");
+        assert_eq!(right?, b"abc");
+        Ok(())
+    }
 }
