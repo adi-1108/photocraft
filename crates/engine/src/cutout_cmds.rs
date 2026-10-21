@@ -4,12 +4,11 @@
 //! the Background layer into a normal layer first and has no menu item.
 
 use photocraft_algo::matting::{self, RefineParams};
-use photocraft_algo::segment::subject;
 use photocraft_doc::{Document, Layer, LayerContent, LayerMask};
 use serde_json::{Value, json};
 
 use crate::commands::{CommandSpec, layer_param};
-use crate::smartselect_cmds::with_doc_sampler;
+use crate::smartselect_cmds::{find_subject_region, with_doc_sampler};
 use crate::{EngineError, Result, Session};
 
 const CMD: &str = "layer.removeBackground";
@@ -41,21 +40,19 @@ fn run(s: &mut Session, p: &Value) -> Result<Value> {
     check(doc, doc.layer(id).ok_or(EngineError::NoLayer(id))?).map_err(EngineError::Other)?;
     let sample_all = p.get("sampleAllLayers").and_then(Value::as_bool).unwrap_or(false);
     let refine = p.get("refine").and_then(Value::as_bool).unwrap_or(true);
+    let engine = p.get("engine").and_then(Value::as_str).unwrap_or("auto").to_string();
     crate::jobs::edit_job(
         s,
         "Remove Background",
         move |doc, _, ctx| {
-            // Cancel reaches the min cuts inside Select Subject, so Esc doesn't wait for them.
-            let found = ctx
-                .stage(0.1, 0.6, "Finding subject", |ctl| {
-                    with_doc_sampler(doc, Some(id), sample_all, |smp, d| subject::select_subject_with(smp, d.bounds(), ctl))
-                })
-                .map_err(|_| EngineError::Cancelled)?;
-            let mut region = found.ok_or_else(|| EngineError::Other("no subject found".into()))?;
+            // Cancel reaches the model and the min cuts inside Select Subject, so Esc doesn't wait.
+            let found = ctx.stage(0.1, 0.6, "Finding subject", |ctl| find_subject_region(doc, Some(id), sample_all, &engine, ctl))?;
+            let (mut region, used) = found.ok_or_else(|| EngineError::Other("no subject found".into()))?;
             if ctx.cancelled() {
                 return Err(EngineError::Cancelled);
             }
-            if refine {
+            // The neural matte is already edge-refined (guided filter); only the classical result needs it.
+            if refine && used == "classical" {
                 ctx.progress(0.6, "Refining edge");
                 let refined = with_doc_sampler(doc, Some(id), sample_all, |smp, d| {
                     matting::refine_mask(smp, &matting::region_reader(&region), region.bbox, d.bounds(), &REFINE)
@@ -82,7 +79,7 @@ pub fn specs() -> Vec<CommandSpec> {
         label: "Remove Background",
         menu: &[],
         shortcut: None,
-        params: r##"{"layer":id?,"sampleAllLayers":bool=false,"refine":bool=true} → {layer,bounds} (adds a layer mask from Select Subject; the Background becomes a normal layer)"##,
+        params: r##"{"layer":id?,"sampleAllLayers":bool=false,"refine":bool=true,"engine":"auto|model|classical"="auto" (auto = the neural matte when its model is installed)} → {layer,bounds} (adds a layer mask from Select Subject; the Background becomes a normal layer)"##,
         enabled,
         run,
         journal: true,
