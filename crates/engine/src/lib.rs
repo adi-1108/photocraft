@@ -99,6 +99,7 @@ pub mod print_cmds;
 pub mod proof_sim;
 pub mod rasterize_style_cmds;
 pub mod redeye_cmds;
+mod remove_subject_cmds;
 pub mod render_cmds;
 pub mod retouch_cmds;
 pub mod sample_cmds;
