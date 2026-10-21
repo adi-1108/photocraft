@@ -166,6 +166,7 @@
 	Fill…	填滿…
 	Stroke…	筆畫…
 	Content-Aware Fill…	內容感知填滿…
+	Remove Subject	移除主體
 	Delete and Fill Selection	刪除並填滿選取範圍
 	Content-Aware Scale	內容感知縮放
 	Puppet Warp	操控彎曲
@@ -2867,3 +2868,18 @@ curves	Smooth	平滑
 
 # Graphics Adapter preference (#1885)
 	GPU adapter	GPU 介面卡
+
+# Optional local AI model management
+	AI Models	AI 模型
+	Models are optional and run entirely on this computer. Downloading fetches the model file from Hugging Face; no images or documents are ever uploaded. Without a model, Select Subject, Remove Background and Remove Subject use the built-in (non-AI) methods.	模型為選用項目，完全在本機執行。下載時會從 Hugging Face 取得模型檔案，絕不會上傳任何影像或文件。未安裝模型時，「選取主體」「移除背景」和「移除主體」使用內建的非 AI 方法。
+	Model download worker failed.	模型下載工作執行緒失敗。
+	Select Subject, Remove Background	選取主體、移除背景
+	Installed	已安裝
+	Not installed	未安裝
+	{size} MB · {licence}	{size} MB · {licence}
+	Download	下載
+	{done} / {total} MB ({percent}%)	{done} / {total} MB ({percent}%)
+	Cancelling…	正在取消…
+	Confirm remove	確認移除
+	subject segmentation (BiRefNet-lite)	主體分割 (BiRefNet-lite)
+	inpainting (LaMa)	影像修補 (LaMa)

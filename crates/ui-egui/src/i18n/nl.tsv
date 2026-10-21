@@ -148,6 +148,7 @@
 	Fill…	Vullen…
 	Stroke…	Omlijnen…
 	Content-Aware Fill…	Inhoudsbewust vullen…
+	Remove Subject	Onderwerp verwijderen
 	Delete and Fill Selection	Selectie verwijderen en vullen
 	Content-Aware Scale	Inhoudsbewust schalen
 	Puppet Warp	Marionetvervorming
@@ -4016,3 +4017,18 @@ curves	Smooth	Vloeiend maken
 
 # Graphics Adapter preference (#1885)
 	GPU adapter	GPU-adapter
+
+# Optional local AI model management
+	AI Models	AI-modellen
+	Models are optional and run entirely on this computer. Downloading fetches the model file from Hugging Face; no images or documents are ever uploaded. Without a model, Select Subject, Remove Background and Remove Subject use the built-in (non-AI) methods.	Modellen zijn optioneel en draaien volledig op deze computer. Downloaden haalt het modelbestand op bij Hugging Face; afbeeldingen en documenten worden nooit geüpload. Zonder model gebruiken Onderwerp selecteren, Achtergrond verwijderen en Onderwerp verwijderen de ingebouwde methoden zonder AI.
+	Model download worker failed.	Het downloadproces voor het model is mislukt.
+	Select Subject, Remove Background	Onderwerp selecteren, Achtergrond verwijderen
+	Installed	Geïnstalleerd
+	Not installed	Niet geïnstalleerd
+	{size} MB · {licence}	{size} MB · {licence}
+	Download	Downloaden
+	{done} / {total} MB ({percent}%)	{done} / {total} MB ({percent}%)
+	Cancelling…	Annuleren…
+	Confirm remove	Verwijderen bevestigen
+	subject segmentation (BiRefNet-lite)	onderwerpsegmentatie (BiRefNet-lite)
+	inpainting (LaMa)	beeldinvulling (LaMa)

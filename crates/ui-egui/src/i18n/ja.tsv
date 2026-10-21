@@ -157,6 +157,7 @@
 	Fill…	塗りつぶし…
 	Stroke…	境界線を描く…
 	Content-Aware Fill…	コンテンツに応じた塗りつぶし…
+	Remove Subject	被写体を削除
 	Delete and Fill Selection	選択範囲を削除して塗りつぶし
 	Content-Aware Scale	コンテンツに応じた拡大・縮小
 	Puppet Warp	パペットワープ
@@ -3934,3 +3935,18 @@ curves	Smooth	スムーズ
 
 # Graphics Adapter preference (#1885)
 	GPU adapter	GPU アダプター
+
+# Optional local AI model management
+	AI Models	AIモデル
+	Models are optional and run entirely on this computer. Downloading fetches the model file from Hugging Face; no images or documents are ever uploaded. Without a model, Select Subject, Remove Background and Remove Subject use the built-in (non-AI) methods.	モデルは任意で、このコンピューター上だけで実行されます。ダウンロード時はHugging Faceからモデルファイルを取得します。画像やドキュメントがアップロードされることはありません。モデルがなくても、「被写体を選択」「背景を削除」「被写体を削除」は内蔵の非AI方式で動作します。
+	Model download worker failed.	モデルのダウンロード処理に失敗しました。
+	Select Subject, Remove Background	被写体を選択、背景を削除
+	Installed	インストール済み
+	Not installed	未インストール
+	{size} MB · {licence}	{size} MB · {licence}
+	Download	ダウンロード
+	{done} / {total} MB ({percent}%)	{done} / {total} MB ({percent}%)
+	Cancelling…	キャンセル中…
+	Confirm remove	削除を確定
+	subject segmentation (BiRefNet-lite)	被写体の分割 (BiRefNet-lite)
+	inpainting (LaMa)	画像の補完 (LaMa)

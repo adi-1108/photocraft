@@ -162,6 +162,7 @@
 	Fill…	Vyplnit…
 	Stroke…	Tah…
 	Content-Aware Fill…	Výplň s ohledem na obsah…
+	Remove Subject	Odstranit hlavní objekt
 	Delete and Fill Selection	Odstranit a vyplnit výběr
 	Content-Aware Scale	Změna velikosti s ohledem na obsah
 	Puppet Warp	Loutková deformace
@@ -3864,3 +3865,18 @@ navigator	Zoom	Zvětšení
 
 # Graphics Adapter preference (#1885)
 	GPU adapter	Adaptér GPU
+
+# Optional local AI model management
+	AI Models	Modely AI
+	Models are optional and run entirely on this computer. Downloading fetches the model file from Hugging Face; no images or documents are ever uploaded. Without a model, Select Subject, Remove Background and Remove Subject use the built-in (non-AI) methods.	Modely jsou volitelné a běží výhradně na tomto počítači. Stažení získá soubor modelu z Hugging Face; žádné obrázky ani dokumenty se nikdy neodesílají. Bez modelu používají funkce Vybrat objekt, Odstranit pozadí a Odstranit objekt vestavěné metody bez AI.
+	Model download worker failed.	Proces stahování modelu selhal.
+	Select Subject, Remove Background	Vybrat objekt, Odstranit pozadí
+	Installed	Nainstalováno
+	Not installed	Nenainstalováno
+	{size} MB · {licence}	{size} MB · {licence}
+	Download	Stáhnout
+	{done} / {total} MB ({percent}%)	{done} / {total} MB ({percent}%)
+	Cancelling…	Rušení…
+	Confirm remove	Potvrdit odstranění
+	subject segmentation (BiRefNet-lite)	segmentace objektu (BiRefNet-lite)
+	inpainting (LaMa)	doplňování obrazu (LaMa)

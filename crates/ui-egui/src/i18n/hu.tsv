@@ -102,6 +102,7 @@
 	Conditional Mode Change…	Feltételes módváltás…
 	Contact Sheet II…	Kontaktlap II…
 	Content-Aware Fill…	Tartalomérzékeny kitöltés…
+	Remove Subject	Fő téma eltávolítása
 	Content-Aware Scale	Tartalomérzékeny méretezés
 	Convert to Profile…	Átalakítás profilra…
 	Copy	Másolás
@@ -4175,3 +4176,18 @@ cameraRaw	Yellow	Sárga
 
 # Graphics Adapter preference (#1885)
 	GPU adapter	GPU-adapter
+
+# Optional local AI model management
+	AI Models	MI-modellek
+	Models are optional and run entirely on this computer. Downloading fetches the model file from Hugging Face; no images or documents are ever uploaded. Without a model, Select Subject, Remove Background and Remove Subject use the built-in (non-AI) methods.	A modellek opcionálisak, és teljes egészében ezen a számítógépen futnak. A letöltés a Hugging Face oldalról tölti le a modellfájlt; képek és dokumentumok soha nem kerülnek feltöltésre. Modell nélkül a Téma kijelölése, Háttér eltávolítása és Téma eltávolítása a beépített, MI nélküli módszereket használja.
+	Model download worker failed.	A modell letöltési folyamata sikertelen.
+	Select Subject, Remove Background	Téma kijelölése, Háttér eltávolítása
+	Installed	Telepítve
+	Not installed	Nincs telepítve
+	{size} MB · {licence}	{size} MB · {licence}
+	Download	Letöltés
+	{done} / {total} MB ({percent}%)	{done} / {total} MB ({percent}%)
+	Cancelling…	Megszakítás…
+	Confirm remove	Eltávolítás megerősítése
+	subject segmentation (BiRefNet-lite)	témaszegmentálás (BiRefNet-lite)
+	inpainting (LaMa)	képkiegészítés (LaMa)

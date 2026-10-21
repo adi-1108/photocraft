@@ -22,9 +22,24 @@ use crate::PhotocraftApp;
 use crate::state::DialogKind;
 use crate::theme::{ThemeKind, Tokens};
 
+#[cfg(not(target_arch = "wasm32"))]
+mod ai_models;
+
+/// Shell-only sections have runtime actions rather than saved preference fields.
+const SHELL_SECTIONS: &[(&str, &str)] = &[
+    #[cfg(not(target_arch = "wasm32"))]
+    ("aiModels", "AI Models"),
+];
+
+fn sections() -> impl Iterator<Item = (&'static str, &'static str)> {
+    SECTIONS.iter().chain(SHELL_SECTIONS).copied()
+}
+
 /// Shell runtime state for preferences, autosave and snapping (not serialised).
 #[derive(Default)]
 pub struct Runtime {
+    #[cfg(not(target_arch = "wasm32"))]
+    ai_models: ai_models::Runtime,
     loaded: bool,
     /// Preferences revision last written to storage (or loaded from it).
     saved_rev: u64,
@@ -473,6 +488,8 @@ pub(crate) fn sync_appearance(app: &mut PhotocraftApp, ctx: &egui::Context) {
 
 /// Per-frame upkeep: theme sync, persistence, autosave and the history log.
 pub fn tick(app: &mut PhotocraftApp, ctx: &egui::Context) {
+    #[cfg(not(target_arch = "wasm32"))]
+    app.prefs_rt.ai_models.repaint_while_active(ctx);
     if !app.prefs_rt.loaded {
         load(app);
     }
@@ -1026,7 +1043,7 @@ pub fn width(fields: &Map<String, Value>, available: f32) -> Option<f32> {
 
 /// Open Edit › Preferences on `section`.
 pub fn open_preferences(app: &mut PhotocraftApp, section: &str) -> u64 {
-    let section = if SECTIONS.iter().any(|(id, _)| *id == section) { section } else { "general" };
+    let section = if sections().any(|(id, _)| id == section) { section } else { "general" };
     let working = preference_values(app.session.prefs());
     let order = field_order(app.session.prefs(), &working);
     open_kind(app, "prefs", "Preferences", json!({"section": section, "values": working, "__order": order}))
@@ -1095,7 +1112,7 @@ pub fn body(app: &mut PhotocraftApp, ui: &mut egui::Ui, f: &mut Map<String, Valu
             f.insert("__gpuInfo".into(), json!(info));
             f.insert("__gpuAdapters".into(), json!(app.perf.gpu_info.adapters));
             let system = system_theme(app, ui.ctx());
-            prefs_body(ui, f, system);
+            prefs_body(ui, f, system, app);
         }
         "shortcuts" => shortcuts_body(app, ui, f),
         "presets" => presets_body(app, ui, f),
@@ -1227,9 +1244,7 @@ fn preference_matches(section: &str, key: &str, query: &str) -> bool {
 
 fn preference_sections(values: &Value, search: &str) -> Vec<(&'static str, &'static str)> {
     let query = search.trim().to_lowercase();
-    SECTIONS
-        .iter()
-        .copied()
+    sections()
         .filter(|(id, title)| {
             query.is_empty()
                 || title.to_lowercase().contains(&query)
@@ -1243,7 +1258,10 @@ fn preference_sections(values: &Value, search: &str) -> Vec<(&'static str, &'sta
 }
 
 /// Preferences: section list on the left, the section's settings on the right.
-fn prefs_body(ui: &mut egui::Ui, f: &mut Map<String, Value>, system: Option<egui::Theme>) {
+fn prefs_body(ui: &mut egui::Ui, f: &mut Map<String, Value>, system: Option<egui::Theme>, app: &mut PhotocraftApp) {
+    // Only the AI Models section (native only) needs the app.
+    #[cfg(target_arch = "wasm32")]
+    let _ = app;
     let t = Tokens::get(ui.ctx());
     let mut section = f.get("section").and_then(Value::as_str).unwrap_or("general").to_string();
     let mut values = f.get("values").cloned().unwrap_or(Value::Null);
@@ -1258,57 +1276,71 @@ fn prefs_body(ui: &mut egui::Ui, f: &mut Map<String, Value>, system: Option<egui
         section = (*first).to_string();
     }
     ui.add_space(6.0);
+    let content_height = settings_height(ui.available_height(), ui.spacing().item_spacing.y, crate::widgets::button_height(ui.ctx()));
     ui.horizontal_top(|ui| {
         // Section list.
         ui.vertical(|ui| {
             ui.set_width(170.0);
-            if found.is_empty() {
-                ui.label(RichText::new(tl!("No matching settings")).color(t.text_dim));
-            }
-            for &(id, title) in &found {
-                let sel = section == id;
-                let empty = !has_visible_fields(&values, id);
-                let (rect, resp) = ui.allocate_exact_size(vec2(170.0, 22.0), Sense::click());
-                if sel {
-                    ui.painter().rect_filled(rect, t.radius_sm, t.row_selected);
-                } else if resp.hovered() {
-                    ui.painter().rect_filled(rect, t.radius_sm, t.hover);
+            egui::ScrollArea::vertical().max_height(content_height).id_salt("prefs-sections-scroll").show(ui, |ui| {
+                if found.is_empty() {
+                    ui.label(RichText::new(tl!("No matching settings")).color(t.text_dim));
                 }
-                let color = if sel {
-                    t.text
-                } else if empty {
-                    t.text_faint
-                } else {
-                    t.text_dim
-                };
-                // Translated section names can be longer than the column: elide them (the full
-                // name is the tooltip) instead of drawing over the settings.
-                let mut job = egui::text::LayoutJob::simple_singleline(tl!(title).to_string(), crate::theme::medium(12.5), color);
-                job.wrap = egui::text::TextWrapping::truncate_at_width(rect.width() - 12.0);
-                let galley = ui.painter().layout_job(job);
-                let elided = galley.elided;
-                ui.painter().galley(rect.left_center() + vec2(8.0, -galley.size().y / 2.0), galley, color);
-                let resp = if elided { resp.on_hover_text(tl!(title)) } else { resp };
-                if resp.clicked() {
-                    section = id.to_string();
+                for &(id, title) in &found {
+                    let sel = section == id;
+                    let empty = !SHELL_SECTIONS.iter().any(|(shell, _)| *shell == id) && !has_visible_fields(&values, id);
+                    let (rect, resp) = ui.allocate_exact_size(vec2(170.0, 22.0), Sense::click());
+                    if sel {
+                        ui.painter().rect_filled(rect, t.radius_sm, t.row_selected);
+                    } else if resp.hovered() {
+                        ui.painter().rect_filled(rect, t.radius_sm, t.hover);
+                    }
+                    let color = if sel {
+                        t.text
+                    } else if empty {
+                        t.text_faint
+                    } else {
+                        t.text_dim
+                    };
+                    // Translated section names can be longer than the column: elide them (the full
+                    // name is the tooltip) instead of drawing over the settings.
+                    let mut job = egui::text::LayoutJob::simple_singleline(tl!(title).to_string(), crate::theme::medium(12.5), color);
+                    job.wrap = egui::text::TextWrapping::truncate_at_width(rect.width() - 12.0);
+                    let galley = ui.painter().layout_job(job);
+                    let elided = galley.elided;
+                    ui.painter().galley(rect.left_center() + vec2(8.0, -galley.size().y / 2.0), galley, color);
+                    let resp = if elided { resp.on_hover_text(tl!(title)) } else { resp };
+                    if resp.clicked() {
+                        section = id.to_string();
+                    }
                 }
-            }
+            });
         });
         // The settings fill the dialog's resizable area down to the button row (#7420). Sizing them
         // from the window instead left a resized dialog with empty space and the buttons mid-way.
         // The area grows to fit its content, so this must never ask for more than it was given.
-        let content_height = settings_height(ui.available_height(), ui.spacing().item_spacing.y, crate::widgets::button_height(ui.ctx()));
         crate::widgets::vline(ui, content_height);
         ui.vertical(|ui| {
             ui.set_width((ui.available_width() - 12.0).max(340.0));
-            let title = SECTIONS.iter().find(|(id, _)| *id == section).map_or("General", |(_, t)| *t);
+            let title = sections().find(|(id, _)| *id == section).map_or("General", |(_, t)| t);
             ui.label(RichText::new(tl!(&title)).font(crate::theme::semibold(14.0)).color(t.text));
             let show_all = search.trim().is_empty()
                 || title.to_lowercase().contains(&search.trim().to_lowercase())
                 || tl!(&title).to_lowercase().contains(&search.trim().to_lowercase());
             let filter = if show_all { "" } else { search.trim() };
             ui.add_space(6.0);
-            egui::ScrollArea::vertical().max_height(content_height - 30.0).id_salt("prefs-scroll").show(ui, |ui| {
+            let privacy_top = ui.cursor().top();
+            // Keep the privacy explanation above the scrollable rows, even with a search active.
+            #[cfg(not(target_arch = "wasm32"))]
+            if section == "aiModels" {
+                ai_models::privacy(ui);
+            }
+            let privacy_height = ui.cursor().top() - privacy_top;
+            egui::ScrollArea::vertical().max_height((content_height - 30.0 - privacy_height).max(0.0)).id_salt("prefs-scroll").show(ui, |ui| {
+                #[cfg(not(target_arch = "wasm32"))]
+                if section == "aiModels" {
+                    ai_models::show(ui, &mut app.prefs_rt.ai_models);
+                    return;
+                }
                 let order: Vec<String> =
                     f.get("__order").and_then(|o| o.get(&section)).and_then(|v| serde_json::from_value(v.clone()).ok()).unwrap_or_default();
                 if !has_visible_fields(&values, &section) {
@@ -2676,7 +2708,22 @@ mod tests {
         assert!(contains("performance", "performance"));
         assert!(contains("interface.uiScale", "interface"));
         assert!(preference_sections(&values, "this setting does not exist").is_empty());
-        assert_eq!(preference_sections(&values, "").len(), SECTIONS.len());
+        assert_eq!(preference_sections(&values, "").len(), sections().count());
+    }
+
+    #[test]
+    fn ai_models_section_is_native_only_and_not_a_saved_preference() {
+        let mut app = PhotocraftApp::new(photocraft_engine::Session::new(), Default::default());
+        let values = app.session.prefs_value();
+        assert!(values.get("aiModels").is_none());
+        let found = preference_sections(&values, "AI Models");
+        if cfg!(target_arch = "wasm32") {
+            assert!(found.is_empty());
+        } else {
+            assert_eq!(found, vec![("aiModels", "AI Models")]);
+            let id = open_preferences(&mut app, "aiModels");
+            assert_eq!(app.ui.dialogs.iter().find(|d| d.id == id).unwrap().fields["section"], "aiModels");
+        }
     }
 
     #[test]

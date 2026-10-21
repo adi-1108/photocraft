@@ -62,6 +62,7 @@
 	Conditional Mode Change…	Đổi chế độ có điều kiện…
 	Contact Sheet II…	Contact Sheet II…
 	Content-Aware Fill…	Tô theo nội dung…
+	Remove Subject	Gỡ bỏ chủ thể
 	Content-Aware Scale	Co giãn theo nội dung
 	Convert to Profile…	Chuyển sang hồ sơ màu…
 	Copy	Sao chép
@@ -3744,3 +3745,18 @@ curves	Smooth	Làm mượt
 
 # Graphics Adapter preference (#1885)
 	GPU adapter	Bộ điều hợp GPU
+
+# Optional local AI model management
+	AI Models	Mô hình AI
+	Models are optional and run entirely on this computer. Downloading fetches the model file from Hugging Face; no images or documents are ever uploaded. Without a model, Select Subject, Remove Background and Remove Subject use the built-in (non-AI) methods.	Các mô hình là tùy chọn và chạy hoàn toàn trên máy tính này. Việc tải xuống lấy tệp mô hình từ Hugging Face; hình ảnh và tài liệu không bao giờ được tải lên. Khi không có mô hình, Chọn chủ thể, Xóa nền và Xóa chủ thể dùng các phương pháp tích hợp không có AI.
+	Model download worker failed.	Tiến trình tải mô hình thất bại.
+	Select Subject, Remove Background	Chọn chủ thể, Xóa nền
+	Installed	Đã cài đặt
+	Not installed	Chưa cài đặt
+	{size} MB · {licence}	{size} MB · {licence}
+	Download	Tải xuống
+	{done} / {total} MB ({percent}%)	{done} / {total} MB ({percent}%)
+	Cancelling…	Đang hủy…
+	Confirm remove	Xác nhận xóa
+	subject segmentation (BiRefNet-lite)	phân đoạn chủ thể (BiRefNet-lite)
+	inpainting (LaMa)	điền ảnh (LaMa)

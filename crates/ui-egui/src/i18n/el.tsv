@@ -211,6 +211,7 @@
 
 # Consolidated Greek localization additions
 	Content-Aware Fill…	Γέμισμα βάσει περιεχομένου…
+	Remove Subject	Αφαίρεση θέματος
 	Content-Aware Scale	Κλιμάκωση βάσει περιεχομένου
 	Puppet Warp	Παραμόρφωση με σημεία ελέγχου
 	Auto-Align Layers…	Αυτόματη στοίχιση επιπέδων…
@@ -3956,3 +3957,18 @@ curves	Smooth	Εξομάλυνση
 
 # Graphics Adapter preference (#1885)
 	GPU adapter	Προσαρμογέας GPU
+
+# Optional local AI model management
+	AI Models	Μοντέλα AI
+	Models are optional and run entirely on this computer. Downloading fetches the model file from Hugging Face; no images or documents are ever uploaded. Without a model, Select Subject, Remove Background and Remove Subject use the built-in (non-AI) methods.	Τα μοντέλα είναι προαιρετικά και εκτελούνται εξ ολοκλήρου σε αυτόν τον υπολογιστή. Η λήψη φέρνει το αρχείο μοντέλου από το Hugging Face· δεν μεταφορτώνονται ποτέ εικόνες ή έγγραφα. Χωρίς μοντέλο, οι λειτουργίες Επιλογή θέματος, Αφαίρεση φόντου και Αφαίρεση θέματος χρησιμοποιούν τις ενσωματωμένες μεθόδους χωρίς AI.
+	Model download worker failed.	Η διεργασία λήψης του μοντέλου απέτυχε.
+	Select Subject, Remove Background	Επιλογή θέματος, Αφαίρεση φόντου
+	Installed	Εγκατεστημένο
+	Not installed	Μη εγκατεστημένο
+	{size} MB · {licence}	{size} MB · {licence}
+	Download	Λήψη
+	{done} / {total} MB ({percent}%)	{done} / {total} MB ({percent}%)
+	Cancelling…	Ακύρωση…
+	Confirm remove	Επιβεβαίωση αφαίρεσης
+	subject segmentation (BiRefNet-lite)	τμηματοποίηση θέματος (BiRefNet-lite)
+	inpainting (LaMa)	συμπλήρωση εικόνας (LaMa)

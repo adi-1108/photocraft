@@ -116,6 +116,7 @@
 	Fill…	Заливка…
 	Stroke…	Обведення…
 	Content-Aware Fill…	Заливка з урахуванням вмісту…
+	Remove Subject	Видалити об'єкт
 	Delete and Fill Selection	Видалити та заповнити виділення
 	Define Brush Preset…	Визначити набір пензля…
 	Define Pattern…	Визначити візерунок…
@@ -3965,3 +3966,18 @@ curves	Smooth	Згладити
 
 # Graphics Adapter preference (#1885)
 	GPU adapter	Адаптер GPU
+
+# Optional local AI model management
+	AI Models	Моделі ШІ
+	Models are optional and run entirely on this computer. Downloading fetches the model file from Hugging Face; no images or documents are ever uploaded. Without a model, Select Subject, Remove Background and Remove Subject use the built-in (non-AI) methods.	Моделі необов’язкові та працюють повністю на цьому комп’ютері. Під час завантаження файл моделі отримується з Hugging Face; зображення й документи ніколи не надсилаються. Без моделі команди «Виділити об’єкт», «Видалити тло» та «Видалити об’єкт» використовують вбудовані методи без ШІ.
+	Model download worker failed.	Помилка потоку завантаження моделі.
+	Select Subject, Remove Background	Виділити об’єкт, Видалити тло
+	Installed	Встановлено
+	Not installed	Не встановлено
+	{size} MB · {licence}	{size} МБ · {licence}
+	Download	Завантажити
+	{done} / {total} MB ({percent}%)	{done} / {total} МБ ({percent}%)
+	Cancelling…	Скасування…
+	Confirm remove	Підтвердити видалення
+	subject segmentation (BiRefNet-lite)	сегментація об’єктів (BiRefNet-lite)
+	inpainting (LaMa)	відновлення зображення (LaMa)

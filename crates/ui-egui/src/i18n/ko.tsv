@@ -149,6 +149,7 @@
 	Fill…	채우기…
 	Stroke…	획…
 	Content-Aware Fill…	내용 인식 채우기…
+	Remove Subject	피사체 제거
 	Delete and Fill Selection	선택 영역 삭제 및 채우기
 	Content-Aware Scale	내용 인식 비율
 	Puppet Warp	퍼펫 뒤틀기
@@ -3440,3 +3441,18 @@ curves	Smooth	매끄럽게
 
 # Graphics Adapter preference (#1885)
 	GPU adapter	GPU 어댑터
+
+# Optional local AI model management
+	AI Models	AI 모델
+	Models are optional and run entirely on this computer. Downloading fetches the model file from Hugging Face; no images or documents are ever uploaded. Without a model, Select Subject, Remove Background and Remove Subject use the built-in (non-AI) methods.	모델은 선택 사항이며 이 컴퓨터에서만 실행됩니다. 다운로드는 Hugging Face에서 모델 파일을 가져옵니다. 이미지나 문서는 절대 업로드되지 않습니다. 모델이 없으면 피사체 선택, 배경 제거, 피사체 제거는 내장된 비 AI 방식을 사용합니다.
+	Model download worker failed.	모델 다운로드 작업에 실패했습니다.
+	Select Subject, Remove Background	피사체 선택, 배경 제거
+	Installed	설치됨
+	Not installed	설치되지 않음
+	{size} MB · {licence}	{size} MB · {licence}
+	Download	다운로드
+	{done} / {total} MB ({percent}%)	{done} / {total} MB ({percent}%)
+	Cancelling…	취소 중…
+	Confirm remove	제거 확인
+	subject segmentation (BiRefNet-lite)	피사체 분할 (BiRefNet-lite)
+	inpainting (LaMa)	이미지 복원 (LaMa)

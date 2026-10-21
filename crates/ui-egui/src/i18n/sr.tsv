@@ -151,6 +151,7 @@
 	Fill…	Popuni…
 	Stroke…	Ocrtaj…
 	Content-Aware Fill…	Popuna prema sadržaju…
+	Remove Subject	Ukloni subjekat
 	Delete and Fill Selection	Obriši i popuni selekciju
 	Content-Aware Scale	Skaliranje prema sadržaju
 	Puppet Warp	Lutkarsko krivljenje
@@ -4329,3 +4330,18 @@ shape	Appearance	Izgled
 
 # Graphics Adapter preference (#1885)
 	GPU adapter	GPU adapter
+
+# Optional local AI model management
+	AI Models	AI modeli
+	Models are optional and run entirely on this computer. Downloading fetches the model file from Hugging Face; no images or documents are ever uploaded. Without a model, Select Subject, Remove Background and Remove Subject use the built-in (non-AI) methods.	Modeli su opcioni i rade u potpunosti na ovom računaru. Preuzimanje dobavlja datoteku modela sa Hugging Face; slike i dokumenti se nikada ne otpremaju. Bez modela, Izaberi subjekat, Ukloni pozadinu i Ukloni subjekat koriste ugrađene metode bez AI.
+	Model download worker failed.	Proces preuzimanja modela nije uspeo.
+	Select Subject, Remove Background	Izaberi subjekat, Ukloni pozadinu
+	Installed	Instalirano
+	Not installed	Nije instalirano
+	{size} MB · {licence}	{size} MB · {licence}
+	Download	Preuzmi
+	{done} / {total} MB ({percent}%)	{done} / {total} MB ({percent}%)
+	Cancelling…	Otkazivanje…
+	Confirm remove	Potvrdi uklanjanje
+	subject segmentation (BiRefNet-lite)	segmentacija subjekta (BiRefNet-lite)
+	inpainting (LaMa)	popunjavanje slike (LaMa)

@@ -156,6 +156,7 @@
 	Fill…	Wypełnij…
 	Stroke…	Obrys…
 	Content-Aware Fill…	Wypełnienie z uwzględnieniem zawartości…
+	Remove Subject	Usuń obiekt główny
 	Content-Aware Scale	Skalowanie z uwzględnieniem zawartości
 	Puppet Warp	Wypaczenie marionetkowe
 	Perspective Warp	Wypaczenie perspektywy
@@ -3856,3 +3857,18 @@ curves	Smooth	Wygładź
 
 # Graphics Adapter preference (#1885)
 	GPU adapter	Karta GPU
+
+# Optional local AI model management
+	AI Models	Modele AI
+	Models are optional and run entirely on this computer. Downloading fetches the model file from Hugging Face; no images or documents are ever uploaded. Without a model, Select Subject, Remove Background and Remove Subject use the built-in (non-AI) methods.	Modele są opcjonalne i działają wyłącznie na tym komputerze. Pobieranie pobiera plik modelu z Hugging Face; obrazy i dokumenty nigdy nie są wysyłane. Bez modelu funkcje Zaznacz obiekt, Usuń tło i Usuń obiekt używają wbudowanych metod bez AI.
+	Model download worker failed.	Proces pobierania modelu nie powiódł się.
+	Select Subject, Remove Background	Zaznacz obiekt, Usuń tło
+	Installed	Zainstalowano
+	Not installed	Nie zainstalowano
+	{size} MB · {licence}	{size} MB · {licence}
+	Download	Pobierz
+	{done} / {total} MB ({percent}%)	{done} / {total} MB ({percent}%)
+	Cancelling…	Anulowanie…
+	Confirm remove	Potwierdź usunięcie
+	subject segmentation (BiRefNet-lite)	segmentacja obiektu (BiRefNet-lite)
+	inpainting (LaMa)	uzupełnianie obrazu (LaMa)

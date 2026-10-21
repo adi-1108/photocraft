@@ -156,6 +156,7 @@
 	Fill…	Preencher…
 	Stroke…	Traçado…
 	Content-Aware Fill…	Preenchimento sensível ao conteúdo…
+	Remove Subject	Remover assunto
 	Delete and Fill Selection	Excluir e preencher seleção
 	Content-Aware Scale	Escala sensível ao conteúdo
 	Puppet Warp	Distorção de marionete
@@ -4046,3 +4047,18 @@ layerLabel	No Color	Sem cor
 
 # Graphics Adapter preference (#1885)
 	GPU adapter	Adaptador de GPU
+
+# Optional local AI model management
+	AI Models	Modelos de IA
+	Models are optional and run entirely on this computer. Downloading fetches the model file from Hugging Face; no images or documents are ever uploaded. Without a model, Select Subject, Remove Background and Remove Subject use the built-in (non-AI) methods.	Os modelos são opcionais e executados inteiramente neste computador. O download obtém o arquivo do modelo do Hugging Face; imagens e documentos nunca são enviados. Sem um modelo, Selecionar objeto, Remover fundo e Remover objeto usam os métodos integrados sem IA.
+	Model download worker failed.	O processo de download do modelo falhou.
+	Select Subject, Remove Background	Selecionar objeto, Remover fundo
+	Installed	Instalado
+	Not installed	Não instalado
+	{size} MB · {licence}	{size} MB · {licence}
+	Download	Baixar
+	{done} / {total} MB ({percent}%)	{done} / {total} MB ({percent}%)
+	Cancelling…	Cancelando…
+	Confirm remove	Confirmar remoção
+	subject segmentation (BiRefNet-lite)	segmentação de objetos (BiRefNet-lite)
+	inpainting (LaMa)	preenchimento de imagem (LaMa)

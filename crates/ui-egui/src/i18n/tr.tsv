@@ -139,6 +139,7 @@
 	Fill…	Doldur…
 	Stroke…	Kontur…
 	Content-Aware Fill…	İçeriğe Uygun Dolgu…
+	Remove Subject	Konuyu Kaldır
 	Delete and Fill Selection	Seçimi Sil ve Doldur
 	Content-Aware Scale	İçeriğe Uygun Ölçek
 	Puppet Warp	Kukla Çözgü
@@ -3986,3 +3987,18 @@ cameraData	Lens	Lens
 
 # Graphics Adapter preference (#1885)
 	GPU adapter	GPU bağdaştırıcısı
+
+# Optional local AI model management
+	AI Models	Yapay Zekâ Modelleri
+	Models are optional and run entirely on this computer. Downloading fetches the model file from Hugging Face; no images or documents are ever uploaded. Without a model, Select Subject, Remove Background and Remove Subject use the built-in (non-AI) methods.	Modeller isteğe bağlıdır ve tamamen bu bilgisayarda çalışır. İndirme, model dosyasını Hugging Face üzerinden alır; hiçbir görüntü veya belge yüklenmez. Model olmadan Konuyu Seç, Arka Planı Kaldır ve Konuyu Kaldır yerleşik yapay zekâ içermeyen yöntemleri kullanır.
+	Model download worker failed.	Model indirme işlemi başarısız oldu.
+	Select Subject, Remove Background	Konuyu Seç, Arka Planı Kaldır
+	Installed	Yüklü
+	Not installed	Yüklü değil
+	{size} MB · {licence}	{size} MB · {licence}
+	Download	İndir
+	{done} / {total} MB ({percent}%)	{done} / {total} MB ({percent}%)
+	Cancelling…	İptal ediliyor…
+	Confirm remove	Kaldırmayı onayla
+	subject segmentation (BiRefNet-lite)	konu bölümleme (BiRefNet-lite)
+	inpainting (LaMa)	görüntü tamamlama (LaMa)

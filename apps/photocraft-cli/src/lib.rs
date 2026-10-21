@@ -11,6 +11,8 @@ use photocraft_engine::actions_cmds::Action;
 use photocraft_io::ExportOptions;
 use serde_json::{Value, json};
 
+mod models;
+
 pub const USAGE: &str = "\
 photocraft-cli: headless PhotoCraft
 
@@ -42,6 +44,10 @@ USAGE:
       Run a droplet (File › Automate › Create Droplet) on images and folders.
   photocraft-cli commands [--json] [--filter <text>]
       List the engine command registry.
+  photocraft-cli models list
+      List model names, licences, expected paths and installation status.
+  photocraft-cli models fetch [--model birefnet|lama|all]
+      Download and verify model weights (default: all).
   photocraft-cli mcp [--bridge <127.0.0.1:port>] [--control-token <64-hex> | --control-token-file <path>]
       [--automation-read-root <dir>] [--automation-write-root <dir>]
       Run the MCP server on stdio (headless engine, or bridge to a running `photocraft --control <port>`).
@@ -71,6 +77,7 @@ struct Subcommand {
 }
 
 const SUBCOMMANDS: &[Subcommand] = &[
+    Subcommand { name: "models", values: &["--model"], bare: &[], run: |a, out, _| models::run(a, out) },
     Subcommand {
         name: "convert",
         values: &["--format", "--quality", "--tga-bits", "--dpx-bits", "--dds-compression"],
