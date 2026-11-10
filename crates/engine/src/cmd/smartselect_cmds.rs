@@ -331,7 +331,8 @@ fn select_subject(s: &mut Session, p: &Value) -> Result<Value> {
         c.region.clone()
     } else {
         let doc = std::sync::Arc::clone(&d.doc);
-        let region = with_doc_sampler(&doc, d.active_layer, all_layers, |smp, doc| crate::vision_select::subject_region_now(smp, doc.bounds())).map(std::sync::Arc::new);
+        let region =
+            with_doc_sampler(&doc, d.active_layer, all_layers, |smp, doc| crate::vision_select::subject_region_now(smp, doc.bounds())).map(std::sync::Arc::new);
         s.subject_cache = SubjectCache { doc: std::sync::Arc::downgrade(&doc), doc_id: Some(doc.id), target, region: region.clone() };
         region
     };

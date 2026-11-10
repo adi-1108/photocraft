@@ -42,10 +42,10 @@ pub mod presets;
 pub mod proof_sim;
 mod scratch;
 pub mod select_mask_edits;
-mod vision_select;
 pub mod shell_commands;
 pub mod shortcut_sets;
 pub mod snap;
+mod vision_select;
 pub use variables_cmds::{export_data_sets_with, import_data_sets_text};
 pub use video_cmds::render_video_with;
 

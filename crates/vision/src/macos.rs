@@ -111,11 +111,7 @@ fn read_float_mask(buffer: &CVPixelBuffer, width: usize, height: usize) -> Resul
 }
 
 /// Runs `f(base, bytes_per_row, width, height)` with `buffer`'s pixels locked, unlocking after.
-fn with_locked<R>(
-    buffer: &CVPixelBuffer,
-    flags: CVPixelBufferLockFlags,
-    f: impl FnOnce(*mut u8, usize, usize, usize) -> Result<R, Error>,
-) -> Result<R, Error> {
+fn with_locked<R>(buffer: &CVPixelBuffer, flags: CVPixelBufferLockFlags, f: impl FnOnce(*mut u8, usize, usize, usize) -> Result<R, Error>) -> Result<R, Error> {
     // SAFETY: a valid buffer; every successful lock is paired with the unlock below.
     if unsafe { CVPixelBufferLockBaseAddress(buffer, flags) } != kCVReturnSuccess {
         return Err(Error::Vision("could not lock the pixel buffer".into()));

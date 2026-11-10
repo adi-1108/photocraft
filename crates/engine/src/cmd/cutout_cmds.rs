@@ -60,7 +60,9 @@ fn run(s: &mut Session, p: &Value) -> Result<Value> {
         move |doc, _, ctx| {
             // Cancel reaches the min cuts inside Select Subject, so Esc doesn't wait for them.
             let found = ctx
-                .stage(0.1, 0.6, "Finding subject", |ctl| with_doc_sampler(doc, Some(id), sample_all, |smp, _| crate::vision_select::subject_region(smp, area, ctl)))
+                .stage(0.1, 0.6, "Finding subject", |ctl| {
+                    with_doc_sampler(doc, Some(id), sample_all, |smp, _| crate::vision_select::subject_region(smp, area, ctl))
+                })
                 .map_err(|_| EngineError::Cancelled)?;
             let region = found.ok_or_else(|| EngineError::Other("no subject found".into()))?;
             let mut surface = matting::region_surface(&region);
