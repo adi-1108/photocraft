@@ -11,7 +11,7 @@
 use std::collections::BTreeSet;
 
 use photocraft_algo::matting;
-use photocraft_algo::segment::{grabcut, quick, subject};
+use photocraft_algo::segment::{grabcut, quick};
 use photocraft_algo::selection::{self as sel, Region, SelectionMode, combine_region};
 use photocraft_doc::{Document, LayerId};
 use photocraft_geom::Rect;
@@ -277,12 +277,12 @@ pub fn apply_one(doc: &Document, layer: Option<LayerId>, base: Option<Surface>, 
         SelectionEdit::Object { area, add, sample_all_layers } => {
             let region = with_doc_sampler(doc, layer, *sample_all_layers, |smp, doc| match *area {
                 ObjectArea::Rect(r) => grabcut::object_select(smp, doc.bounds(), r, 160_000),
-                ObjectArea::Point(x, y) => grabcut::object_at(smp, doc.bounds(), x, y, grabcut::OBJECT_AT_WORK_PX),
+                ObjectArea::Point(x, y) => crate::vision_select::object_region_at(smp, doc.bounds(), x, y),
             });
             combine(region, mode(*add))
         }
         SelectionEdit::Subject { mode, sample_all_layers } => {
-            let region = with_doc_sampler(doc, layer, *sample_all_layers, |smp, doc| subject::select_subject(smp, doc.bounds()));
+            let region = with_doc_sampler(doc, layer, *sample_all_layers, |smp, doc| crate::vision_select::subject_region_now(smp, doc.bounds()));
             combine(region, *mode)
         }
         SelectionEdit::Clear => None,

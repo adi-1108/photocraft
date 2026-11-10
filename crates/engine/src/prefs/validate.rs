@@ -50,12 +50,18 @@ pub const HIDDEN_UNTIL_IMPLEMENTED: &[&str] = &[
 
 /// Is the preference at `path` (`"section.key"`) hidden from the Preferences dialog?
 pub fn is_hidden(path: &str) -> bool {
-    HIDDEN_UNTIL_IMPLEMENTED.contains(&path) || (!cfg!(target_os = "linux") && LINUX_ONLY.contains(&path))
+    HIDDEN_UNTIL_IMPLEMENTED.contains(&path)
+        || (!cfg!(target_os = "linux") && LINUX_ONLY.contains(&path))
+        || (!photocraft_vision::available() && APPLE_VISION_ONLY.contains(&path))
 }
 
 /// Preferences that only do something on Linux; the dialog doesn't show them elsewhere. They
 /// still load, save and round-trip on every platform.
 pub const LINUX_ONLY: &[&str] = &["performance.linuxDisplayServer", "performance.gpuAdapter"];
+
+/// Preferences that only do something where Apple's Vision framework runs (macOS 14 and
+/// later); the dialog doesn't show them elsewhere. They still load, save and round-trip.
+pub const APPLE_VISION_ONLY: &[&str] = &["performance.useAppleVision"];
 
 /// Whether a graphics adapter called `name` is the one `performance.gpuAdapter` (`wanted`) asks
 /// for: every whitespace-separated word of `wanted` appears in the name, ignoring case ("nvidia",

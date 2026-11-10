@@ -5006,6 +5006,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "objc2-vision"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bfc194758a2d5d7540b1ad283bfb9ca318ec608991892326e95b428230b2689b"
+dependencies = [
+ "objc2 0.6.5",
+ "objc2-core-video",
+ "objc2-foundation 0.3.2",
+]
+
+[[package]]
 name = "once_cell"
 version = "1.21.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5536,6 +5547,7 @@ dependencies = [
  "photocraft-testkit",
  "photocraft-text",
  "photocraft-vector",
+ "photocraft-vision",
  "rayon",
  "roxmltree 0.21.1",
  "same-file",
@@ -5827,6 +5839,16 @@ dependencies = [
  "photocraft-geom",
  "photocraft-raster",
  "rayon",
+]
+
+[[package]]
+name = "photocraft-vision"
+version = "0.20.1"
+dependencies = [
+ "objc2 0.6.5",
+ "objc2-core-video",
+ "objc2-foundation 0.3.2",
+ "objc2-vision",
 ]
 
 [[package]]
