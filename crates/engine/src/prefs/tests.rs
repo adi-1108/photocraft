@@ -635,6 +635,24 @@ fn linux_only_preferences_show_only_on_linux() {
 }
 
 #[test]
+fn apple_vision_preference_shows_only_where_vision_runs() {
+    assert_eq!(is_hidden("performance.useAppleVision"), !photocraft_vision::available());
+    if !cfg!(target_os = "macos") {
+        assert!(is_hidden("performance.useAppleVision"), "never offered off macOS");
+    }
+    let json = serde_json::to_value(Preferences::default()).unwrap();
+    for p in APPLE_VISION_ONLY {
+        let (section, key) = p.split_once('.').unwrap();
+        assert!(json[section][key].is_boolean(), "{p} is a real preference");
+    }
+    // On by default; loads, saves and round-trips on every platform.
+    let mut s = Session::new();
+    assert!(s.prefs().performance.use_apple_vision);
+    s.load_prefs_json(r#"{"performance": {"useAppleVision": false}}"#).unwrap();
+    assert!(!s.prefs().performance.use_apple_vision);
+}
+
+#[test]
 fn the_default_pressure_curve_is_linear() {
     let c = PressureCurve::new(&Preferences::default().tools.pressure_curve);
     assert!(c.is_linear());

@@ -533,7 +533,7 @@ pub use shortcuts::{
 };
 use store::read_lenient;
 pub use store::{InvalidPref, PREFS_VERSION, PrefsStore, read_section};
-pub use validate::{HIDDEN_UNTIL_IMPLEMENTED, LINUX_ONLY, SECTIONS, choices, gpu_adapter_matches, is_color, is_hidden, parse_hex, range};
+pub use validate::{APPLE_VISION_ONLY, HIDDEN_UNTIL_IMPLEMENTED, LINUX_ONLY, SECTIONS, choices, gpu_adapter_matches, is_color, is_hidden, parse_hex, range};
 use validate::{check_value, get_path, keyed, set_path};
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -742,6 +742,10 @@ pub struct Performance {
     /// missing. Frames are capped at 240 fps. Off (the default): vsync, smooth but late. Desktop
     /// only.
     pub low_latency_drawing: bool,
+    /// Select Subject, Object Selection's click, Remove Background and Mask All Objects ask
+    /// Apple's Vision framework for the foreground objects first (on device), and use the
+    /// built-in segmentation when it finds nothing. Only shown where Vision runs (macOS 14+).
+    pub use_apple_vision: bool,
     /// Linux display server (applies at next launch; see [`LinuxDisplayServer`]).
     pub linux_display_server: LinuxDisplayServer,
     /// GPU memory the canvas compositor may hold for layer pages and effect maps, in MB; 0 is
@@ -812,6 +816,7 @@ impl Default for Performance {
             gpu_adapter: String::new(),
             low_resolution_previews: true,
             low_latency_drawing: false,
+            use_apple_vision: true,
             linux_display_server: LinuxDisplayServer::Auto,
             gpu_memory_mb: 0,
             effect_cache_mb: 768,
@@ -1558,6 +1563,7 @@ impl Session {
             st.trim_history();
         }
         photocraft_compose::set_effect_cache_budget(budget);
+        crate::vision_select::set_enabled(self.prefs().performance.use_apple_vision);
         crate::transform_cmds::set_budget(u64::from(self.prefs().performance.effective_memory_usage_mb()) << 20);
         // Without waiting for the system font scan: this runs on the UI thread at launch.
         photocraft_text::set_shared_missing_glyph_protection(self.prefs().type_.missing_glyph_protection());

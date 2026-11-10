@@ -4,7 +4,7 @@
 //! composite), run them, and store the result as the selection (or a mask / new layer).
 
 use photocraft_algo::matting::{self, RefineParams};
-use photocraft_algo::segment::{Sampler, SurfaceSampler, focus, grabcut, quick, subject};
+use photocraft_algo::segment::{Sampler, SurfaceSampler, focus, grabcut, quick};
 use photocraft_algo::selection::{Region, SelectionMode, combine_region};
 use photocraft_doc::{Document, Layer, LayerContent, LayerId, LayerMask};
 use photocraft_geom::Rect;
@@ -163,7 +163,7 @@ pub fn sampled_target(doc: &Document, layer: Option<LayerId>, all_layers: bool) 
 /// sampling `layer` (or the composite). Pure, so the UI can run it on a worker thread while the
 /// pointer hovers; `select.object` with `"point"` commits the same result.
 pub fn find_object(doc: &Document, layer: Option<LayerId>, all_layers: bool, x: f32, y: f32) -> Option<Region> {
-    with_doc_sampler(doc, layer, all_layers, |smp, doc| grabcut::object_at(smp, doc.bounds(), x, y, grabcut::OBJECT_AT_WORK_PX))
+    with_doc_sampler(doc, layer, all_layers, |smp, doc| crate::vision_select::object_region_at(smp, doc.bounds(), x, y))
 }
 
 /// Most objects remembered by [`ObjectFinderCache`].
@@ -331,7 +331,7 @@ fn select_subject(s: &mut Session, p: &Value) -> Result<Value> {
         c.region.clone()
     } else {
         let doc = std::sync::Arc::clone(&d.doc);
-        let region = with_doc_sampler(&doc, d.active_layer, all_layers, |smp, doc| subject::select_subject(smp, doc.bounds())).map(std::sync::Arc::new);
+        let region = with_doc_sampler(&doc, d.active_layer, all_layers, |smp, doc| crate::vision_select::subject_region_now(smp, doc.bounds())).map(std::sync::Arc::new);
         s.subject_cache = SubjectCache { doc: std::sync::Arc::downgrade(&doc), doc_id: Some(doc.id), target, region: region.clone() };
         region
     };

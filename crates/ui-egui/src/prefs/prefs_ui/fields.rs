@@ -73,6 +73,10 @@ pub(super) fn humanize(key: &str) -> String {
     if key == "lowLatencyDrawing" {
         return "Low-Latency Drawing (vsync off, applies at next launch)".into();
     }
+    // Performance: only listed where Vision runs (macOS 14+, `prefs::APPLE_VISION_ONLY`).
+    if key == "useAppleVision" {
+        return "Use Apple Vision for Select Subject and Object Selection".into();
+    }
     // Performance: the canvas compositor's GPU memory, 0 for the automatic budget (L3).
     // Scratch Disks: how large the scratch file may grow; the free-space reserve always applies.
     if key == "sizeLimitMb" {
